@@ -1,21 +1,24 @@
 package edu.vt.cs.cs5254.gallery
 
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.provider.Settings.Global.getString
 import android.util.Log
+import androidx.annotation.WorkerThread
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import edu.vt.cs.cs5254.gallery.api.FlickrApi
 import edu.vt.cs.cs5254.gallery.api.FlickrResponse
 import edu.vt.cs.cs5254.gallery.api.GalleryItem
 import edu.vt.cs.cs5254.gallery.api.PhotoResponse
+import okhttp3.ResponseBody
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
-const val TAG = "FlickrFetchr"
-
-class FlickrFetchr {
+object FlickrFetchr {
 
     private val flickrApi: FlickrApi
 
@@ -33,14 +36,14 @@ class FlickrFetchr {
 
         flickrRequest.enqueue(object : Callback<FlickrResponse> {
             override fun onFailure(call: Call<FlickrResponse>, t: Throwable) {
-                Log.e(TAG, "Failed to fetch photos", t)
+//                Log.e(TAG, "Failed to fetch photos", t)
             }
 
             override fun onResponse(
                 call: Call<FlickrResponse>,
                 response: Response<FlickrResponse>
             ) {
-                Log.d(TAG, "Response received")
+//                Log.d(TAG, "Response received")
                 val flickrResponse: FlickrResponse? = response.body()
                 val photoResponse: PhotoResponse? = flickrResponse?.photos
                 var galleryItems: List<GalleryItem> = photoResponse?.galleryItems
@@ -52,5 +55,11 @@ class FlickrFetchr {
             }
         })
         return responseLiveData
+    }
+
+    @WorkerThread
+    fun fetchPhoto(url: String): Bitmap? {
+        val response = flickrApi.fetchUrlBytes(url).execute()
+        return response.body()?.byteStream()?.use(BitmapFactory::decodeStream)
     }
 }
