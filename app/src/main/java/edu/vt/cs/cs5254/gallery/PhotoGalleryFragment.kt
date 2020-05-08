@@ -5,14 +5,12 @@ import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.os.Handler
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Adapter
 import android.widget.ImageView
-import android.widget.TextView
 import androidx.core.content.ContextCompat
+import androidx.core.content.ContextCompat.startActivity
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
@@ -29,6 +27,7 @@ class PhotoGalleryFragment : Fragment() {
         super.onCreate(savedInstanceState)
         retainInstance = true
         photoGalleryViewModel = ViewModelProvider(this).get(PhotoGalleryViewModel::class.java)
+        photoGalleryViewModel.loadPhotos()
         val responseHandler = Handler()
         thumbnailDownloader = ThumbnailDownloader(responseHandler) { photoHolder, bitmap ->
             val drawable = BitmapDrawable(resources, bitmap)
@@ -53,7 +52,7 @@ class PhotoGalleryFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         photo_recycler_view.layoutManager = GridLayoutManager(context, 3)
-        photoGalleryViewModel.galleryItemLiveData.observe(
+        photoGalleryViewModel.galleryItemsLiveData.observe(
             viewLifecycleOwner,
             Observer { galleryItems ->
                 photo_recycler_view.adapter = PhotoAdapter(galleryItems)
@@ -75,19 +74,28 @@ class PhotoGalleryFragment : Fragment() {
         )
     }
 
-    private class PhotoHolder(itemImageView: ImageView) : RecyclerView.ViewHolder(itemImageView) {
+    private inner class PhotoHolder(
+        itemImageView: ImageView,
+        onHolderClickListener: OnHolderClickListener
+    ) : RecyclerView.ViewHolder(itemImageView) {
         val bindDrawable: (Drawable) -> Unit = itemImageView::setImageDrawable
+
+        init {
+            itemImageView.setOnClickListener {
+                onHolderClickListener.onClickListener(adapterPosition)
+            }
+        }
     }
 
     private inner class PhotoAdapter(private val galleryItems: List<GalleryItem>) :
-        RecyclerView.Adapter<PhotoHolder>() {
+        RecyclerView.Adapter<PhotoHolder>(), OnHolderClickListener {
         override fun onCreateViewHolder(
             parent: ViewGroup,
             viewType: Int
         ): PhotoHolder {
             val view =
                 layoutInflater.inflate(R.layout.list_item_gallery, parent, false) as ImageView
-            return PhotoHolder(view)
+            return PhotoHolder(view, this)
         }
 
         override fun getItemCount(): Int = galleryItems.size
@@ -101,5 +109,15 @@ class PhotoGalleryFragment : Fragment() {
             holder.bindDrawable(placeholder)
             thumbnailDownloader.queueThumbnail(holder, galleryItem.url)
         }
+
+        override fun onClickListener(position: Int) {
+            val intent =
+                PhotoPageActivity.newIntent(requireContext(), galleryItems[position].photoPageUri)
+            startActivity(intent)
+        }
+    }
+
+    interface OnHolderClickListener {
+        fun onClickListener(position: Int) {}
     }
 }

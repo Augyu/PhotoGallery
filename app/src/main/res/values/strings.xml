@@ -4,5 +4,6 @@
     <string name="title_map">Map</string>
     <string name="api_key">c22c2699297b776cc6fb8f627a836a83</string>
     <string name="google_api_key">AIzaSyAi5M798lr5UZSZxDgr9-K7bSMB0M97bNA</string>
+    <string name="reload">Reload</string>
 
 </resources>

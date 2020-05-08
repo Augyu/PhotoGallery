@@ -21,6 +21,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 object FlickrFetchr {
 
     private val flickrApi: FlickrApi
+    val responseLiveData: MutableLiveData<List<GalleryItem>> = MutableLiveData()
 
     init {
         val retrofit: Retrofit = Retrofit.Builder()
@@ -30,8 +31,12 @@ object FlickrFetchr {
         flickrApi = retrofit.create(FlickrApi::class.java)
     }
 
-    fun fetchPhotos(): LiveData<List<GalleryItem>> {
-        val responseLiveData: MutableLiveData<List<GalleryItem>> = MutableLiveData()
+    fun fetchPhotos() {
+        Log.d("test", responseLiveData.value.toString())
+        if (responseLiveData.value != null && responseLiveData.value?.isEmpty()==false){
+            return
+        }
+
         val flickrRequest: Call<FlickrResponse> = flickrApi.fetchPhotos()
 
         flickrRequest.enqueue(object : Callback<FlickrResponse> {
@@ -54,7 +59,6 @@ object FlickrFetchr {
                 responseLiveData.value = galleryItems
             }
         })
-        return responseLiveData
     }
 
     @WorkerThread

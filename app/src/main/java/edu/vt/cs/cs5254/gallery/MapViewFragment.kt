@@ -34,6 +34,7 @@ open class MapViewFragment : Fragment() {
     protected lateinit var googleMap: GoogleMap
     private lateinit var mapView: MapView
 
+
     @Suppress("SameParameterValue")
     protected fun onCreateMapView(
         inflater: LayoutInflater,
@@ -105,6 +106,8 @@ open class MapViewFragment : Fragment() {
         super.onLowMemory()
         mapView.onLowMemory()
     }
+
+    protected fun mapIsInitialized() = this::googleMap.isInitialized
 
     /**
      * A utility function for setting bitmaps as map marker icons.
